@@ -44,7 +44,7 @@ test-suite temperTests
     type:              exitcode-stdio-1.0
     build-depends:     base >=4.6 && <4.8,
                        unix ==2.7.*,
-                       test-framework ==0.3.*,
+                       test-framework ==0.8.*,
                        test-framework-hunit ==0.3.*,
                        HUnit ==1.2.*,
                        bytestring ==0.10.*,
