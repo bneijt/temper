@@ -1,3 +1,5 @@
+![Travis CI build status](https://api.travis-ci.org/bneijt/temper.svg)
+
 Code to monitor a [TEMPer USB thermometer](http://www.dx.com/p/81105?Utm_rid=85466298&Utm_source=affiliate) in Haskell.
 
     Bus 001 Device 031: ID 0c45:7401 Microdia TEMPer Temperature Sensor
