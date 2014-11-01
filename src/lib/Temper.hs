@@ -2,10 +2,15 @@ module Temper where
 
 import qualified Data.ByteString as BS
 import System.USB.IO (Size, writeControl, noTimeout, Recipient(ToInterface), RequestType(Class), readInterrupt, Status)
-import System.USB.Enumeration (Device)
+import System.USB.Enumeration (getDevices, Device)
+import System.USB.Initialization (newCtx)
 import System.USB.Descriptors (getDeviceDesc, DeviceDesc(deviceProductId, deviceVendorId), EndpointAddress(..), TransferDirection(..))
-import System.USB.DeviceHandling (withDetachedKernelDriver, DeviceHandle, InterfaceNumber)
+import System.USB.DeviceHandling (withDetachedKernelDriver, withDeviceHandle, DeviceHandle, InterfaceNumber)
 import Data.Word (Word16, Word8)
+
+import Control.Monad (filterM)
+import Data.Vector (toList)
+
 
 temperatureFrom :: BS.ByteString -> Float
 temperatureFrom msg = (125.0 / 32000.0) * fromIntegral measurement
@@ -66,6 +71,12 @@ readTemperature deviceHandle =
             (msg, _) <- interruptRead deviceHandle
             return (temperatureFrom msg)
 
-
+readTemperatureFromFirstAvailableDevice :: IO Float
+readTemperatureFromFirstAvailableDevice = do
+    usbContext <- newCtx
+    devices <- getDevices usbContext
+    temperDevices <- filterM isTemperDevice (toList devices)
+    let firstDevice = head temperDevices
+    withDeviceHandle firstDevice readTemperature
 
 
