@@ -8,7 +8,7 @@ import System.USB.DeviceHandling (withDetachedKernelDriver, DeviceHandle, Interf
 import Data.Word (Word16, Word8)
 
 temperatureFrom :: BS.ByteString -> Float
-temperatureFrom msg = (125.0 / 32000.0) * (fromIntegral measurement)
+temperatureFrom msg = (125.0 / 32000.0) * fromIntegral measurement
     where
         byte2Int = fromIntegral (BS.index msg 2) :: Integer
         byte3Int = fromIntegral (BS.index msg 3) :: Integer
@@ -35,12 +35,12 @@ ini2Command = [ 0x01, 0x86, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00 ]
 isTemperDevice :: Device -> IO Bool
 isTemperDevice device = do
     devDesc <- getDeviceDesc device
-    return $ ((deviceVendorId devDesc) == temperVendorId) && ((deviceProductId devDesc) == temperProductId)
+    return $ (deviceVendorId devDesc == temperVendorId) && (deviceProductId devDesc == temperProductId)
 
 
 interruptRead :: DeviceHandle -> IO (BS.ByteString, Status)
-interruptRead deviceHandle = do
-    readInterrupt deviceHandle (EndpointAddress {endpointNumber = 0x82, transferDirection = In}) 8 noTimeout
+interruptRead deviceHandle =
+    readInterrupt deviceHandle EndpointAddress {endpointNumber = 0x82, transferDirection = In} 8 noTimeout
 
 controlTransfer :: DeviceHandle -> [Word8] -> IO (Size, Status)
 controlTransfer deviceHandle msg = writeControl deviceHandle Class ToInterface setConfigurationRequest 0x0200 0x01 (BS.pack msg) noTimeout
@@ -49,20 +49,20 @@ setConfigurationRequest :: Word8
 setConfigurationRequest = 0x09
 
 
-readTemperature :: DeviceHandle -> IO (Float)
-readTemperature deviceHandle = do
+readTemperature :: DeviceHandle -> IO Float
+readTemperature deviceHandle =
     --Release the kernel driver
-    withDetachedKernelDriver deviceHandle 0 $ do
+    withDetachedKernelDriver deviceHandle 0 $
         withDetachedKernelDriver deviceHandle 1 $ do
-            writeControl deviceHandle Class ToInterface setConfigurationRequest 0x0201 0x00 (BS.pack [0x01, 0x01]) noTimeout
-            controlTransfer deviceHandle temperatureCommand
-            interruptRead deviceHandle
-            controlTransfer deviceHandle ini1Command
-            interruptRead deviceHandle
-            controlTransfer deviceHandle ini2Command
-            interruptRead deviceHandle
-            interruptRead deviceHandle
-            controlTransfer deviceHandle temperatureCommand
+            _ <- writeControl deviceHandle Class ToInterface setConfigurationRequest 0x0201 0x00 (BS.pack [0x01, 0x01]) noTimeout
+            _ <- controlTransfer deviceHandle temperatureCommand
+            _ <- interruptRead deviceHandle
+            _ <- controlTransfer deviceHandle ini1Command
+            _ <- interruptRead deviceHandle
+            _ <- controlTransfer deviceHandle ini2Command
+            _ <- interruptRead deviceHandle
+            _ <- interruptRead deviceHandle
+            _ <- controlTransfer deviceHandle temperatureCommand
             (msg, _) <- interruptRead deviceHandle
             return (temperatureFrom msg)
 

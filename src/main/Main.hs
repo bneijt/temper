@@ -12,7 +12,7 @@ main = do
     usbContext <- newCtx
     devices <- getDevices usbContext
     temperDevices <- filterM T.isTemperDevice (toList devices)
-    putStrLn (show (head temperDevices))
+    print (head temperDevices)
     withDeviceHandle (head temperDevices) $ \device -> do
         temp <- T.readTemperature device
-        putStrLn (show temp)
+        print temp
