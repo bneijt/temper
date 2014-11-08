@@ -93,4 +93,15 @@ Code to monitor a [TEMPer USB thermometer](http://www.dx.com/p/81105?Utm_rid=854
       (Bus Powered)
 
 
-Based on Python code from https://github.com/padelt/temper-python
+On Linux or Raspberry PI you need to have special privileges to access USB devices. To use the device without root privileges, create a file called `/etc/udev/rules.d/50-temper.rules` containing:
+
+    ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="7401", SUBSYSTEMS=="usb", ACTION=="add", MODE="0666", GROUP="plugdev"
+
+After creation execute `sudo udevadm control --reload-rules` to reload the rules and then reconnect the Temper device.
+If your user is a member of the `plugdev` group, you should be allowed to access the temper without root privileges.
+
+See also
+--------
+This code is based on other projects on the internet:
+- C code at https://github.com/edorfaus/TEMPered
+- Python code at https://github.com/padelt/temper-python
