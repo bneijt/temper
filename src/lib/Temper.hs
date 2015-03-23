@@ -21,18 +21,22 @@ temperatureFrom msg = (125.0 / 32000.0) * fromIntegral measurement
 
 temperVendorId :: Word16
 temperVendorId = 0x0c45
+
 temperProductId :: Word16
 temperProductId = 0x7401
 
 interface0 :: InterfaceNumber
 interface0 = 0x00
+
 interface1 :: InterfaceNumber
 interface1 = 0x01
 
 temperatureCommand :: [Word8]
 temperatureCommand = [ 0x01, 0x80, 0x33, 0x01, 0x00, 0x00, 0x00, 0x00 ]
+
 ini1Command :: [Word8]
 ini1Command = [ 0x01, 0x82, 0x77, 0x01, 0x00, 0x00, 0x00, 0x00 ]
+
 ini2Command :: [Word8]
 ini2Command = [ 0x01, 0x86, 0xff, 0x01, 0x00, 0x00, 0x00, 0x00 ]
 
@@ -69,6 +73,7 @@ readTemperature deviceHandle =
             _ <- interruptRead deviceHandle
             _ <- controlTransfer deviceHandle temperatureCommand
             (msg, _) <- interruptRead deviceHandle
+            putStrLn ("Read message: " ++ (show $ BS.unpack msg))
             return (temperatureFrom msg)
 
 readTemperatureFromFirstAvailableDevice :: IO Float

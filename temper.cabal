@@ -22,7 +22,7 @@ library
                         bytestring ==0.10.*,
                         vector ==0.10.*,
                         binary ==0.7.*,
-                        usb >=1.2
+                        usb ==1.2.*
     hs-source-dirs:     src/lib
     exposed-modules:    Temper
     ghc-options:        -Wall

@@ -23,4 +23,4 @@ temperatureFromShouldShiftBitsCorrectly = assertEqual "Zero is measured as zero"
 
 aValueOfOneShouldBeAlmostZeroCelcius = assertEqual "One should work" 0.00390625 (temperatureFrom (BS.pack [0x00, 0x00, 0x00, 0x01]))
 
-temperatureFromShouldWorkForRealExample = assertEqual "One should work" 23.0 (temperatureFrom (BS.pack [128, 2, 23, 0, 101, 114, 70, 49]))
+temperatureFromShouldWorkForRealExample = assertEqual "Should work" 23.0 (temperatureFrom (BS.pack [128, 2, 23, 0, 101, 114, 70, 49]))
