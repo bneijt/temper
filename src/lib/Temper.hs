@@ -1,7 +1,7 @@
 module Temper where
 
 import qualified Data.ByteString as BS
-import System.USB.IO (Size, writeControl, noTimeout, Recipient(ToInterface), RequestType(Class), readInterrupt, Status)
+import System.USB.IO (Size, writeControl, noTimeout, Recipient(ToInterface), RequestType(Class), readInterrupt, Status, ControlSetup(..))
 import System.USB.Enumeration (getDevices, Device)
 import System.USB.Initialization (newCtx)
 import System.USB.Descriptors (getDeviceDesc, DeviceDesc(deviceProductId, deviceVendorId), EndpointAddress(..), TransferDirection(..))
@@ -51,19 +51,33 @@ interruptRead :: DeviceHandle -> IO (BS.ByteString, Status)
 interruptRead deviceHandle =
     readInterrupt deviceHandle EndpointAddress {endpointNumber = 0x82, transferDirection = In} 8 noTimeout
 
+
 controlTransfer :: DeviceHandle -> [Word8] -> IO (Size, Status)
-controlTransfer deviceHandle msg = writeControl deviceHandle Class ToInterface setConfigurationRequest 0x0200 0x01 (BS.pack msg) noTimeout
+controlTransfer deviceHandle msg = writeControl deviceHandle setConfigurationRequestControlSetupOne (BS.pack msg) noTimeout
 
-setConfigurationRequest :: Word8
-setConfigurationRequest = 0x09
+setConfigurationRequestControlSetupOne :: ControlSetup
+setConfigurationRequestControlSetupOne = ControlSetup { controlSetupRequestType = Class,
+    controlSetupRecipient = ToInterface,
+    controlSetupRequest = 0x09,
+    controlSetupValue = 0x0200,
+    controlSetupIndex = 0x01
+    }
 
+setConfigurationRequestControlSetupTwo :: ControlSetup
+setConfigurationRequestControlSetupTwo = ControlSetup {
+    controlSetupRequestType = Class,
+    controlSetupRecipient = ToInterface,
+    controlSetupRequest = 0x09,
+    controlSetupValue = 0x0201,
+    controlSetupIndex = 0x00
+    }
 
 readTemperature :: DeviceHandle -> IO Float
 readTemperature deviceHandle =
     --Release the kernel driver
     withDetachedKernelDriver deviceHandle 0 $
         withDetachedKernelDriver deviceHandle 1 $ do
-            _ <- writeControl deviceHandle Class ToInterface setConfigurationRequest 0x0201 0x00 (BS.pack [0x01, 0x01]) noTimeout
+            _ <- writeControl deviceHandle setConfigurationRequestControlSetupTwo (BS.pack [0x01, 0x01]) noTimeout
             _ <- controlTransfer deviceHandle temperatureCommand
             _ <- interruptRead deviceHandle
             _ <- controlTransfer deviceHandle ini1Command
